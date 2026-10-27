@@ -1,2 +1,0 @@
-# KRW
-SCRIPT

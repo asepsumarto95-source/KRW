@@ -1,0 +1,130 @@
+
+-- GUI BULAT: GESER & KUNCI
+-- Untuk proyek Roblox milik sendiri
+-- LocalScript
+
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "FloatingDiceGUI"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Tombol bulat
+local btn = Instance.new("TextButton")
+btn.Size = UDim2.fromOffset(60, 60)
+btn.Position = UDim2.new(0, 30, 0.4, 0)
+btn.Text = "🎲"
+btn.TextSize = 28
+btn.BackgroundColor3 = Color3.fromRGB(30, 110, 240)
+btn.TextColor3 = Color3.new(1, 1, 1)
+btn.Active = true
+btn.Parent = gui
+
+Instance.new("UICorner", btn).CornerRadius = UDim.new(1, 0)
+
+-- Panel sederhana
+local panel = Instance.new("Frame")
+panel.Size = UDim2.fromOffset(220, 120)
+panel.Position = UDim2.new(0.5, -110, 0.5, -60)
+panel.BackgroundColor3 = Color3.fromRGB(20, 30, 50)
+panel.Visible = false
+panel.Parent = gui
+
+Instance.new("UICorner", panel).CornerRadius = UDim.new(0, 12)
+
+local info = Instance.new("TextLabel")
+info.Size = UDim2.new(1, -10, 0, 65)
+info.Position = UDim2.fromOffset(5, 5)
+info.BackgroundTransparency = 1
+info.Text = "GUI DADU 1–12"
+info.TextColor3 = Color3.new(1, 1, 1)
+info.TextScaled = true
+info.Parent = panel
+
+local close = Instance.new("TextButton")
+close.Size = UDim2.new(1, -20, 0, 35)
+close.Position = UDim2.fromOffset(10, 78)
+close.Text = "TUTUP"
+close.Parent = panel
+
+-- Geser dan kunci
+local locked = false
+local dragging = false
+local moved = false
+local startPos, startInput, activeInput
+
+btn.InputBegan:Connect(function(input)
+    if locked then return end
+
+    if input.UserInputType == Enum.UserInputType.Touch
+    or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        moved = false
+        activeInput = input
+        startInput = input.Position
+        startPos = btn.Position
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if not dragging or not activeInput then return end
+
+    local touchMove = input == activeInput
+    local mouseMove =
+        activeInput.UserInputType == Enum.UserInputType.MouseButton1
+        and input.UserInputType == Enum.UserInputType.MouseMovement
+
+    if not touchMove and not mouseMove then return end
+
+    local delta = input.Position - startInput
+
+    if math.abs(delta.X) + math.abs(delta.Y) > 8 then
+        moved = true
+    end
+
+    if moved then
+        btn.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + delta.X,
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if not activeInput then return end
+
+    if input == activeInput
+    or (activeInput.UserInputType == Enum.UserInputType.MouseButton1
+    and input.UserInputType == Enum.UserInputType.MouseButton1) then
+        dragging = false
+        activeInput = nil
+    end
+end)
+
+btn.Activated:Connect(function()
+    if moved then
+        moved = false
+        return
+    end
+
+    panel.Visible = not panel.Visible
+end)
+
+close.Activated:Connect(function()
+    panel.Visible = false
+end)
+
+-- Ketuk panel untuk mengunci / membuka kunci tombol bulat
+local lock = Instance.new("TextButton")
+lock.Size = UDim2.fromOffset(35, 35)
+lock.Position = UDim2.new(1, -40, 0, 5)
+lock.Text = "🔓"
+lock.Parent = panel
+
+lock.Activated:Connect(function()
+    locked = not locked
+    lock.Text = locked and "🔒" or "🔓"
+end)
